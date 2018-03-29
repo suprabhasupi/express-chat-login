@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import mysql from 'mysql';
+import uuid from 'uuid/v4';
+import cookieParser from 'cookie-parser';
 const app = express();
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
-const cors = require('cors');
-const bodyParser = require('body-parser')
-const mysql = require('mysql');
-const uuid = require('uuid/v4');
-var cookieParser = require('cookie-parser')
 
 app.use(cors({
   credentials: true,
@@ -18,7 +18,7 @@ const secret = speakeasy.generateSecret({ name: 'ZC_Chat', length: 20 });
 
 var db = mysql.createConnection({
   host: "0.0.0.0",
-  port: "3307",
+  port: 3307,
   user: "root",
   password: "password",
   database: 'ZC_CHAT'
@@ -29,7 +29,7 @@ db.connect(function (err) {
   console.log("Connected to DB!");
 });
 
-handleLogin = (username, email, cb) => {
+const handleLogin = (username: String, email: String, cb: Function) => {
   db.query(`select * from newusers where username = "${username}"`, function (err, result) {
     if (err) cb(err, {});
     if (result[0]) return cb(null, { registered: true });
@@ -49,7 +49,7 @@ handleLogin = (username, email, cb) => {
     // }
   });
 }
-handleOtp = (req,res) => {
+const handleOtp = (req: express.Request, res: express.Response) => {
   const { username, email, otp } = req.body;
   console.log('helo helo')
   if (!username) return res.status(400).json({
@@ -57,7 +57,7 @@ handleOtp = (req,res) => {
     message: 'username required',
   });
 
-  if (!otp) return handleLogin(username, email, (err, data) => {
+  if (!otp) return handleLogin(username, email, (err: Error, data: Object) => {
     if (err) throw err;
     res.json(data);
   });
@@ -68,9 +68,9 @@ handleOtp = (req,res) => {
     if (!user) throw new Error("no user found");
     const verified = speakeasy.totp.verify({
       secret: user.secret,
-        encoding: 'base32',
-        token: otp
-      })
+      encoding: 'base32',
+      token: otp
+    })
     if (verified) {
       const token = uuid();
       db.query(`insert into userToken (token, userId) values ("${token}", "${user.id}")`, function (err, result) {
@@ -91,15 +91,16 @@ handleOtp = (req,res) => {
   });
 }
 
-handleLoginStatus = (req,res) => {
+const handleLoginStatus = (req: express.Request, res: express.Response) => {
   const token = req.cookies.token;
-  if(!token) {
-    return res.json({status: 0})
+  if (!token) {
+    return res.json({ status: 0 })
   }
   db.query(`select id from userToken where token = "${token}"`, (err, result) => {
-    if(err) throw err;
+    if (err) throw err;
     res.json({
-      status: !!result[0]
+      status: !!result[0],
+      cookie: 'req.cookies'
     })
   })
 }
@@ -118,9 +119,13 @@ app.get('/is-logged-in', handleLoginStatus)
 //   res.cookie('name', 'express')
 //   res.cookie('name', 'express', { domain: 'localhost', path: '/cookie', secure: true }).send('cookie set');
 // })
- 
+
 // send query ?mobile=345678987 
 // app.get('/verify-otp', verifyToken);
 // send query ?mobile=345678987 
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
+
+export const add = (a: number, b: number) => {
+  return a + b;
+}

@@ -24,7 +24,7 @@ var db = mysql.createConnection({
   database: 'ZC_CHAT'
 });
 
-db.connect(function (err) {
+db.connect(function (err: Error) {
   if (err) throw err;
   console.log("Connected to DB!");
 });

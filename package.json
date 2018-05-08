@@ -1,18 +1,19 @@
 {
   "name": "chat-serever",
-  "main": "app.js",
+  "main": "src/app.ts",
   "scripts": {
     "build": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/app.js --exec",
+    "start": "nodemon --exec ts-node src/app.ts",
     "prod": "babel -w src/ --out-dir lib/"
   },
   "dependencies": {
-    "@types/body-parser": "^1.16.8",
+    "@types/body-parser": "^1.17.0",
     "@types/cookie-parser": "^1.4.1",
     "@types/cors": "^2.8.3",
     "@types/express": "^4.11.1",
     "@types/mysql": "^2.15.4",
     "@types/qrcode": "^0.8.1",
+    "@types/socket.io": "^1.4.33",
     "@types/speakeasy": "^2.0.2",
     "@types/uuid": "^3.4.3",
     "body-parser": "^1.18.2",
@@ -26,6 +27,7 @@
     "qrcode": "^1.2.0",
     "speakeasy": "^2.0.0",
     "ts-jest": "^22.4.2",
+    "ts-node": "^6.0.3",
     "typescript": "^2.8.1",
     "typings": "^2.1.1",
     "uuid": "^3.2.1"

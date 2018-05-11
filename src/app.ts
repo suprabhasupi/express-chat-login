@@ -6,7 +6,16 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import uuid from 'uuid/v4';
 import cookieParser from 'cookie-parser';
+import socketIo from 'socket.io';
 const app = express();
+
+import * as http from 'http';
+
+const app_server = http.createServer(app);
+// const app_server = app
+app_server.listen(3001, () => console.log("Example app listening on port 3000!"));
+const server = socketIo(app_server)
+const chatServer = server.of('/chat')
 
 app.use(cors({
   credentials: true,
@@ -51,7 +60,7 @@ const handleLogin = (username: String, email: String, cb: Function) => {
 }
 const handleOtp = (req: express.Request, res: express.Response) => {
   const { username, email, otp } = req.body;
-  console.log('helo helo')
+  // console.log('helo helo')
   if (!username) return res.status(400).json({
     status: 0,
     message: 'username required',
@@ -74,7 +83,7 @@ const handleOtp = (req: express.Request, res: express.Response) => {
     if (verified) {
       const token = uuid();
       db.query(`insert into userToken (token, userId) values ("${token}", "${user.id}")`, function (err, result) {
-        console.log('lplpl');
+        // console.log('lplpl');
         if (err) throw err;
         res.cookie('token', token, { path: '/' }).json({ loggedIn: verified });
         // res.cookie('token', token, {
@@ -96,12 +105,20 @@ const handleLoginStatus = (req: express.Request, res: express.Response) => {
   if (!token) {
     return res.json({ status: 0 })
   }
-  db.query(`select id from userToken where token = "${token}"`, (err, result) => {
+  db.query(`select * from userToken where token = "${token}"`, (err, result) => {
     if (err) throw err;
-    res.json({
-      status: !!result[0],
-      cookie: 'req.cookies'
-    })
+    // console.log('Result code:"-=----->',result[0] )
+    if (result.length > 0) {
+      db.query(`select * from newusers where id="${result[0].userId}"`, (err, users) => {
+        // console.log('users-s->', users[0])
+        res.json({ status: !!result[0], user_name: users[0].username });
+      })
+  } else {
+      res.json({
+        status: !!result[0],
+        cookie: 'req.cookies'
+      })
+  }
   })
 }
 
@@ -129,3 +146,19 @@ app.listen(3000, () => console.log('Example app listening on port 3000!'))
 export const add = (a: number, b: number) => {
   return a + b;
 }
+
+// // websocket stuff
+chatServer.on("connection", client => {
+  console.log('client.id  connection successfull');
+
+  client.emit('greeting', { message: 'Hello world' });
+  client.on('disconnect', function () {
+    chatServer.emit('user disconnected');
+    console.log('user disconnected')
+  });
+
+  client.on("message", (info, callback) => {
+    console.log('chat message received!!!!--->', info)
+    chatServer.emit('newMessage', info)
+  });
+});
